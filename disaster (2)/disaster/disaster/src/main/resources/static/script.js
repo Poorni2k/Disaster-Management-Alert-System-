@@ -1,5 +1,5 @@
 // =========================================
-// FINAL SCRIPT.JS - DISASTER MANAGEMENT SYSTEM
+// FINAL CORRECTED SCRIPT.JS - DISASTER MANAGEMENT SYSTEM
 // =========================================
 
 // -----------------------------
@@ -55,7 +55,8 @@ const districtCoordinates = {
 // LOGOUT
 // -----------------------------
 function logout() {
-    localStorage.clear();
+    localStorage.removeItem("username");
+    localStorage.removeItem("role");
     window.location.href = "login.html";
 }
 
@@ -97,11 +98,16 @@ function getSeverityClass(severity) {
 }
 
 // -----------------------------
-// LOCAL STORAGE ALERT HELPERS
+// LOCAL STORAGE ALERT HELPERS (DEMO FALLBACK ONLY)
 // -----------------------------
 function getLocalAlerts() {
-    const alerts = localStorage.getItem("localAlerts");
-    return alerts ? JSON.parse(alerts) : [];
+    try {
+        const alerts = localStorage.getItem("localAlerts");
+        return alerts ? JSON.parse(alerts) : [];
+    } catch (error) {
+        console.error("Local alerts parse error:", error);
+        return [];
+    }
 }
 
 function saveLocalAlerts(alerts) {
@@ -110,6 +116,7 @@ function saveLocalAlerts(alerts) {
 
 function addLocalAlert(alertData) {
     const alerts = getLocalAlerts();
+
     const newAlert = {
         id: Date.now(),
         title: alertData.title,
@@ -117,35 +124,101 @@ function addLocalAlert(alertData) {
         district: alertData.district,
         severity: alertData.severity,
         message: alertData.message,
-        username: alertData.username || "admin"
+        username: alertData.username || "admin",
+        createdAt: new Date().toISOString(),
+        source: "local"
     };
+
     alerts.unshift(newAlert);
     saveLocalAlerts(alerts);
 }
 
 function deleteLocalAlertById(id) {
-    const alerts = getLocalAlerts().filter(alert => alert.id != id);
+    const alerts = getLocalAlerts().filter(alert => String(alert.id) !== String(id));
     saveLocalAlerts(alerts);
+}
+
+// -----------------------------
+// NORMALIZE ALERT OBJECT
+// -----------------------------
+function normalizeAlert(alert) {
+    return {
+        id: alert.id ?? alert.alertId ?? Date.now(),
+        title: alert.title ?? "Untitled Alert",
+        type: alert.type ?? "General",
+        district: alert.district ?? "Tamil Nadu",
+        severity: (alert.severity ?? "LOW").toUpperCase(),
+        message: alert.message ?? "No message",
+        username: alert.username ?? alert.createdBy ?? "admin",
+        createdAt: alert.createdAt ?? alert.timestamp ?? new Date().toISOString(),
+        source: alert.source ?? "backend"
+    };
+}
+
+// -----------------------------
+// REMOVE DUPLICATES BY ID
+// -----------------------------
+function removeDuplicateAlerts(alerts) {
+    const seen = new Set();
+    return alerts.filter(alert => {
+        const key = String(alert.id);
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+    });
+}
+
+// -----------------------------
+// SORT ALERTS NEWEST FIRST
+// -----------------------------
+function sortAlertsNewestFirst(alerts) {
+    return alerts.sort((a, b) => {
+        const aTime = new Date(a.createdAt || 0).getTime();
+        const bTime = new Date(b.createdAt || 0).getTime();
+
+        if (bTime !== aTime) return bTime - aTime;
+
+        return Number(b.id || 0) - Number(a.id || 0);
+    });
 }
 
 // -----------------------------
 // GET ALL ALERTS (BACKEND + LOCAL FALLBACK)
 // -----------------------------
 async function getAllAlerts() {
+    let backendAlerts = [];
+    let localAlerts = getLocalAlerts();
+
     try {
-        const response = await fetch(`${API_BASE}/alerts`);
+        const response = await fetch(`${API_BASE}/alerts`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json"
+            }
+        });
 
         if (response.ok) {
-            const backendAlerts = await response.json();
-            const localAlerts = getLocalAlerts();
-            return [...localAlerts, ...backendAlerts];
+            const data = await response.json();
+
+            if (Array.isArray(data)) {
+                backendAlerts = data.map(normalizeAlert);
+            } else {
+                console.warn("Backend /alerts did not return array:", data);
+            }
         } else {
-            return getLocalAlerts();
+            console.warn("Backend GET /alerts failed with status:", response.status);
         }
     } catch (error) {
         console.error("Fetch Alerts Error:", error);
-        return getLocalAlerts();
     }
+
+    // If backend has data, use backend first, then add local fallback if not duplicate
+    const mergedAlerts = removeDuplicateAlerts([
+        ...backendAlerts,
+        ...localAlerts.map(normalizeAlert)
+    ]);
+
+    return sortAlertsNewestFirst(mergedAlerts);
 }
 
 // -----------------------------
@@ -180,6 +253,7 @@ if (registerForm) {
             if (response.ok) {
                 registerMsg.innerText = text || "Registration successful!";
                 registerMsg.style.color = "lightgreen";
+
                 setTimeout(() => {
                     window.location.href = "login.html";
                 }, 1000);
@@ -318,7 +392,14 @@ if (alertForm) {
             return;
         }
 
-        const alertData = { title, type, district, severity, message, username };
+        const alertData = {
+            title,
+            type,
+            district,
+            severity,
+            message,
+            username
+        };
 
         try {
             const response = await fetch(`${API_BASE}/alerts`, {
@@ -327,29 +408,39 @@ if (alertForm) {
                 body: JSON.stringify(alertData)
             });
 
-            const text = await response.text();
-            console.log("Create Alert Response:", text);
+            const responseText = await response.text();
+            console.log("Create Alert Response:", responseText);
 
             if (response.ok) {
-                alertMsg.innerText = text || "Alert created successfully!";
+                alertMsg.innerText = responseText || "Alert created successfully!";
                 alertMsg.style.color = "lightgreen";
                 alertForm.reset();
-                loadAdminAlerts();
+
+                // IMPORTANT: remove demo local fallback if backend works
+                // (optional: keep as is if you want)
+                // saveLocalAlerts([]);
+
+                await loadAdminAlerts();
             } else {
+                // fallback only if backend POST failed
                 addLocalAlert(alertData);
-                alertMsg.innerText = "Alert saved locally (backend POST failed, demo mode active)!";
+                alertMsg.innerText = "Alert saved locally only (backend POST failed).";
                 alertMsg.style.color = "orange";
                 alertForm.reset();
-                loadAdminAlerts();
+
+                await loadAdminAlerts();
             }
 
         } catch (error) {
             console.error("Create Alert Error:", error);
+
+            // fallback only if backend completely failed
             addLocalAlert(alertData);
-            alertMsg.innerText = "Alert saved locally (backend connection failed, demo mode active)!";
+            alertMsg.innerText = "Alert saved locally only (backend connection failed).";
             alertMsg.style.color = "orange";
             alertForm.reset();
-            loadAdminAlerts();
+
+            await loadAdminAlerts();
         }
     });
 }
@@ -385,7 +476,7 @@ async function loadAdminAlerts() {
             <td>${getSeverityBadge(alert.severity)}</td>
             <td>${alert.message ?? "-"}</td>
             <td>${alert.username ?? "admin"}</td>
-            <td><button class="delete-btn" onclick="deleteAlert(${alert.id})">Delete</button></td>
+            <td><button class="delete-btn" onclick="deleteAlert('${alert.id}')">Delete</button></td>
         `;
         adminAlertTableBody.appendChild(row);
     });
@@ -409,7 +500,7 @@ async function loadAdminAlerts() {
 async function deleteAlert(id) {
     if (!confirm("Are you sure you want to delete this alert?")) return;
 
-    let deleted = false;
+    let deletedFromBackend = false;
 
     try {
         const response = await fetch(`${API_BASE}/alerts/${id}`, {
@@ -417,21 +508,24 @@ async function deleteAlert(id) {
         });
 
         if (response.ok) {
-            deleted = true;
+            deletedFromBackend = true;
+        } else {
+            console.warn("Backend delete failed with status:", response.status);
         }
     } catch (error) {
         console.error("Delete Backend Error:", error);
     }
 
+    // Always delete from local fallback too
     deleteLocalAlertById(id);
 
-    if (!deleted) {
-        alert("Alert deleted locally (backend delete may not exist).");
-    } else {
+    if (deletedFromBackend) {
         alert("Alert deleted successfully!");
+    } else {
+        alert("Alert deleted locally. Backend delete may not be available.");
     }
 
-    loadAdminAlerts();
+    await loadAdminAlerts();
 }
 
 // -----------------------------
@@ -476,18 +570,26 @@ async function loadCitizenAlerts() {
     if (citizenAlertTableBody) {
         citizenAlertTableBody.innerHTML = "";
 
-        alerts.forEach((alert) => {
-            const row = document.createElement("tr");
-            row.innerHTML = `
-                <td>${alert.title ?? "-"}</td>
-                <td>${alert.type ?? "-"}</td>
-                <td>${alert.district ?? "-"}</td>
-                <td>${getSeverityBadge(alert.severity)}</td>
-                <td>${alert.message ?? "-"}</td>
-                <td>${alert.username ?? "admin"}</td>
+        if (alerts.length === 0) {
+            citizenAlertTableBody.innerHTML = `
+                <tr>
+                    <td colspan="6" style="text-align:center;">No active alerts available</td>
+                </tr>
             `;
-            citizenAlertTableBody.appendChild(row);
-        });
+        } else {
+            alerts.forEach((alert) => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${alert.title ?? "-"}</td>
+                    <td>${alert.type ?? "-"}</td>
+                    <td>${alert.district ?? "-"}</td>
+                    <td>${getSeverityBadge(alert.severity)}</td>
+                    <td>${alert.message ?? "-"}</td>
+                    <td>${alert.username ?? "admin"}</td>
+                `;
+                citizenAlertTableBody.appendChild(row);
+            });
+        }
     }
 }
 
