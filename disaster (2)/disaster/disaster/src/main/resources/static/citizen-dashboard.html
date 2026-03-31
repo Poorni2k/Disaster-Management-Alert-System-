@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Citizen Dashboard - Disaster Management & Alert System</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <nav class="navbar">
+        <h2>Citizen Dashboard</h2>
+        <div class="nav-right">
+            <span id="welcomeCitizen"></span>
+            <button onclick="logout()" class="logout-btn">Logout</button>
+        </div>
+    </nav>
+
+    <div class="container">
+
+        <div class="card">
+            <h2>Live Disaster Alerts</h2>
+            <p>Citizens can view all active alerts created by admin. Auto refresh every 5 seconds.</p>
+        </div>
+
+        <!-- Alert Cards -->
+        <div id="citizenAlertCards" class="alert-cards"></div>
+
+        <!-- Alert Table -->
+        <div class="card">
+            <h2>Alert Details</h2>
+            <div class="table-responsive">
+                <table class="alert-table">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Type</th>
+                            <th>District</th>
+                            <th>Severity</th>
+                            <th>Message</th>
+                            <th>Created By</th>
+                        </tr>
+                    </thead>
+                    <tbody id="citizenAlertTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Disaster Management & Alert System</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="auth-container">
+        <div class="auth-box">
+            <h2>Login</h2>
+            <p>Login to access your dashboard</p>
+
+            <form id="loginForm">
+                <div class="input-group">
+                    <label for="loginUsername">Username</label>
+                    <input type="text" id="loginUsername" placeholder="Enter username" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="loginPassword">Password</label>
+                    <input type="password" id="loginPassword" placeholder="Enter password" required>
+                </div>
+
+                <button type="submit" class="btn-primary">Login</button>
+                <p id="loginMsg" class="form-message"></p>
+            </form>
+
+            <div class="auth-footer">
+                <p>Don't have an account?</p>
+                <a href="register.html" class="link-btn">Go to Register</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

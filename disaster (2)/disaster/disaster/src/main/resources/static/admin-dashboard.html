@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Disaster Management & Alert System</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <nav class="navbar">
+        <h2>Admin Dashboard</h2>
+        <div class="nav-right">
+            <span id="welcomeAdmin"></span>
+            <button onclick="logout()" class="logout-btn">Logout</button>
+        </div>
+    </nav>
+
+    <div class="container">
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Total Alerts</h3>
+                <p id="totalAlerts">0</p>
+            </div>
+            <div class="stat-card">
+                <h3>High</h3>
+                <p id="highAlerts">0</p>
+            </div>
+            <div class="stat-card">
+                <h3>Medium</h3>
+                <p id="mediumAlerts">0</p>
+            </div>
+            <div class="stat-card">
+                <h3>Low</h3>
+                <p id="lowAlerts">0</p>
+            </div>
+        </div>
+
+        <!-- Create Alert -->
+        <div class="card">
+            <h2>Create / Send Disaster Alert</h2>
+            <form id="alertForm">
+
+                <input type="text" id="alertTitle" placeholder="Enter Alert Title" required>
+
+                <select id="alertType" required>
+                    <option value="">Select Disaster Type</option>
+                    <option value="Flood">Flood</option>
+                    <option value="Cyclone">Cyclone</option>
+                    <option value="Earthquake">Earthquake</option>
+                    <option value="Fire">Fire</option>
+                    <option value="Landslide">Landslide</option>
+                    <option value="Tsunami">Tsunami</option>
+                    <option value="Heavy Rain">Heavy Rain</option>
+                    <option value="Heatwave">Heatwave</option>
+                </select>
+
+                <select id="alertDistrict" required>
+                    <option value="">Select District</option>
+                    <option value="Ariyalur">Ariyalur</option>
+                    <option value="Chengalpattu">Chengalpattu</option>
+                    <option value="Chennai">Chennai</option>
+                    <option value="Coimbatore">Coimbatore</option>
+                    <option value="Cuddalore">Cuddalore</option>
+                    <option value="Dharmapuri">Dharmapuri</option>
+                    <option value="Dindigul">Dindigul</option>
+                    <option value="Erode">Erode</option>
+                    <option value="Kallakurichi">Kallakurichi</option>
+                    <option value="Kanchipuram">Kanchipuram</option>
+                    <option value="Kanyakumari">Kanyakumari</option>
+                    <option value="Karur">Karur</option>
+                    <option value="Krishnagiri">Krishnagiri</option>
+                    <option value="Madurai">Madurai</option>
+                    <option value="Mayiladuthurai">Mayiladuthurai</option>
+                    <option value="Nagapattinam">Nagapattinam</option>
+                    <option value="Namakkal">Namakkal</option>
+                    <option value="Nilgiris">Nilgiris</option>
+                    <option value="Perambalur">Perambalur</option>
+                    <option value="Pudukkottai">Pudukkottai</option>
+                    <option value="Ramanathapuram">Ramanathapuram</option>
+                    <option value="Ranipet">Ranipet</option>
+                    <option value="Salem">Salem</option>
+                    <option value="Sivaganga">Sivaganga</option>
+                    <option value="Tenkasi">Tenkasi</option>
+                    <option value="Thanjavur">Thanjavur</option>
+                    <option value="Theni">Theni</option>
+                    <option value="Thoothukudi">Thoothukudi</option>
+                    <option value="Tiruchirappalli">Tiruchirappalli</option>
+                    <option value="Tirunelveli">Tirunelveli</option>
+                    <option value="Tirupathur">Tirupathur</option>
+                    <option value="Tiruppur">Tiruppur</option>
+                    <option value="Tiruvallur">Tiruvallur</option>
+                    <option value="Tiruvannamalai">Tiruvannamalai</option>
+                    <option value="Tiruvarur">Tiruvarur</option>
+                    <option value="Vellore">Vellore</option>
+                    <option value="Viluppuram">Viluppuram</option>
+                    <option value="Virudhunagar">Virudhunagar</option>
+                </select>
+
+                <select id="alertSeverity" required>
+                    <option value="">Select Severity</option>
+                    <option value="HIGH">HIGH</option>
+                    <option value="MEDIUM">MEDIUM</option>
+                    <option value="LOW">LOW</option>
+                </select>
+
+                <textarea id="alertMessage" placeholder="Enter alert message for citizens..." rows="4" required></textarea>
+
+                <button type="submit" class="btn-primary">Send Alert</button>
+            </form>
+            <p id="alertMsg"></p>
+        </div>
+
+        <!-- Map -->
+        <div class="card">
+            <h2>Disaster Alert Area Map</h2>
+            <p id="mapInfo">Latest alerted district map will appear here.</p>
+            <div class="map-container">
+                <iframe
+                    id="alertMapFrame"
+                    src="https://www.google.com/maps?q=Tamil+Nadu&output=embed"
+                    width="100%"
+                    height="350"
+                    style="border:0; border-radius: 12px;"
+                    allowfullscreen=""
+                    loading="lazy">
+                </iframe>
+            </div>
+        </div>
+
+        <!-- Alert Table -->
+        <div class="card">
+            <h2>All Disaster Alerts</h2>
+            <div class="table-responsive">
+                <table class="alert-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Title</th>
+                            <th>Type</th>
+                            <th>District</th>
+                            <th>Severity</th>
+                            <th>Message</th>
+                            <th>Created By</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminAlertTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

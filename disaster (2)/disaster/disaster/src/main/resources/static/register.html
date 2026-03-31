@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - Disaster Management & Alert System</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="auth-container">
+        <div class="auth-box">
+            <h2>Citizen / Admin Registration</h2>
+            <p>Create your account to continue</p>
+
+            <form id="registerForm">
+                <div class="input-group">
+                    <label for="regUsername">Username</label>
+                    <input type="text" id="regUsername" placeholder="Enter username" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="regPassword">Password</label>
+                    <input type="password" id="regPassword" placeholder="Enter password" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="regRole">Select Role</label>
+                    <select id="regRole" required>
+                        <option value="">-- Select Role --</option>
+                        <option value="CITIZEN">Citizen</option>
+                        <option value="ADMIN">Admin</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn-primary">Register</button>
+                <p id="registerMsg" class="form-message"></p>
+            </form>
+
+            <div class="auth-footer">
+                <p>Already have an account?</p>
+                <a href="login.html" class="link-btn">Go to Login</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
